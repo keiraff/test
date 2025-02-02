@@ -57,22 +57,6 @@ animate_loading() {
 animate_loading
 echo ""
 
-get_input() {
-    local prompt="$1"
-    local value
-    while true; do
-        echo -e "${YELLOW}$prompt${NC}"
-        read value
-        # Проверка, является ли значение числом
-        if [[ "$value" =~ ^[0-9]+$ ]]; then
-            echo "$value"
-            break
-        else
-            echo -e "${RED}Пожалуйста, введите числовое значение.${NC}"
-        fi
-    done
-}
-
 # Функция для установки ноды
 install_node() {
     echo -e "${BLUE}Начинаем установку ноды...${NC}"
@@ -97,10 +81,12 @@ install_node() {
     read SOLANA_PUB_KEY
     
     # Запрос значения для RAM
-    RAM=$(get_input "Введите количество RAM в ГБ (целое число):")
+    echo -e "${YELLOW}Введите количество RAM в ГБ (целое число):${NC}"
+    read RAM
     
     # Запрос значения для max-disk
-    DISK=$(get_input "Введите количество max-disk в ГБ (целое число):")
+    echo -e "${YELLOW}Введите количество max-disk в ГБ (целое число):${NC}"
+    read DISK
     
     # Запуск команды с параметрами, с указанием публичного ключа Solana, RAM и max-disk
     screen -S pipe2 -X stuff "./pop --ram $RAM --max-disk $DISK --cache-dir ~/pipe/download_cache --pubKey $SOLANA_PUB_KEY\n"
