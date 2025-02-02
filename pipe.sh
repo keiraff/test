@@ -88,53 +88,22 @@ install_node() {
     echo -e "${GREEN}Для выхода из сессии screen нажмите 'Ctrl + A' затем 'D'.${NC}"
 }
 
-# Функция для получения вывода из screen (например, статус или поинты)
-get_screen_output() {
-    # Создание временного файла для хранения вывода из screen
-    TEMP_FILE=$(mktemp)
-
-    # Выполнение команды и сохранение вывода в файл
-    screen -S pipe2 -X hardcopy "$TEMP_FILE"
-
-    # Печать содержимого временного файла
-    cat "$TEMP_FILE"
-
-    # Удаление временного файла
-    rm -f "$TEMP_FILE"
-}
-
 # Функция для проверки статуса ноды
 check_status() {
     echo -e "${BLUE}Проверка статуса ноды...${NC}"
-
-    # Проверка наличия активной сессии screen
-    if screen -list | grep -q "pipe2"; then
-        # Если сессия существует, выполняем команду и получаем вывод
-        screen -S pipe2 -X stuff "./pop --status\n"
-        get_screen_output  # Получаем вывод и выводим его в основной процесс
-    else
-        # Если сессия не существует, создаём её и выполняем команду
-        screen -S pipe2 -dm
-        screen -S pipe2 -X stuff "./pop --status\n"
-        get_screen_output  # Получаем вывод и выводим его в основной процесс
-    fi
+    
+    screen -x pipe2
+    
+    ./pop --status
 }
 
 # Функция для проверки поинтов ноды
 check_points() {
     echo -e "${BLUE}Проверка поинтов ноды...${NC}"
-
-    # Проверка наличия активной сессии screen
-    if screen -list | grep -q "pipe2"; then
-        # Если сессия существует, выполняем команду и получаем вывод
-        screen -S pipe2 -X stuff "./pop --points-route\n"
-        get_screen_output  # Получаем вывод и выводим его в основной процесс
-    else
-        # Если сессия не существует, создаём её и выполняем команду
-        screen -S pipe2 -dm
-        screen -S pipe2 -X stuff "./pop --points-route\n"
-        get_screen_output  # Получаем вывод и выводим его в основной процесс
-    fi
+    
+    screen -x pipe2
+    
+    ./pop --points-route
 }
 
 # Функция для удаления ноды
