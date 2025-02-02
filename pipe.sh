@@ -20,6 +20,20 @@ RED="\e[31m"
 PINK="\e[35m"
 NC="\e[0m"
 
+install_dependencies() {
+    echo -e "${GREEN}Устанавливаем необходимые пакеты...${NC}"
+    sudo apt update && sudo apt install -y curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip screen
+}
+
+# Определяем цвета для удобства
+YELLOW="\e[33m"
+CYAN="\e[36m"
+BLUE="\e[34m"
+GREEN="\e[32m"
+RED="\e[31m"
+PINK="\e[35m"
+NC="\e[0m"
+
 # Вывод приветственного текста с помощью figlet
 echo -e "${PINK}$(figlet -w 150 -f standard "Softs by Gentleman")${NC}"
 echo -e "${PINK}$(figlet -w 150 -f standard "x WESNA")${NC}"
@@ -57,52 +71,36 @@ install_node() {
     echo -e "${BLUE}Начинаем установку ноды...${NC}"
 
     # Обновление и установка зависимостей
-    sudo apt update -y && sudo apt upgrade -y
+    install_dependencies
 
-    # Проверка архитектуры системы
-    ARCH=$(uname -m)
-    if [[ "$ARCH" == "x86_64" ]]; then
-        CLIENT_URL="https://cdn.app.multiple.cc/client/linux/x64/multipleforlinux.tar"
-    elif [[ "$ARCH" == "aarch64" ]]; then
-        CLIENT_URL="https://cdn.app.multiple.cc/client/linux/arm64/multipleforlinux.tar"
-    else
-        echo -e "${RED}Неподдерживаемая архитектура системы: $ARCH${NC}"
-        exit 1
-    fi
+    # Создание директории для кэша и переход в неё
+    mkdir -p ~/pipe/download_cache
+    cd ~/pipe
 
-    # Скачиваем и распаковываем клиент
-    wget $CLIENT_URL -O multipleforlinux.tar
-    tar -xvf multipleforlinux.tar
-    cd multipleforlinux
+    # Скачиваем файл pop
+    wget https://dl.pipecdn.app/v0.2.0/pop
 
-    # Устанавливаем разрешения на выполнение
-    chmod +x ./multiple-cli
-    chmod +x ./multiple-node
+    # Делаем файл исполнимым
+    chmod +x pop
 
-    # Добавляем клиент в системный PATH
-    echo "PATH=\$PATH:$(pwd)" >> ~/.bash_profile
-    source ~/.bash_profile
+    # Создание новой сессии в screen
+    screen -S pipe2 -dm
 
-    # Запуск ноды
-    nohup ./multiple-node > output.log 2>&1 &
+    # Запуск файла в screen с нужными параметрами
+    echo -e "${YELLOW}Введите ваш публичный адрес Solana:${NC}"
+    read SOLANA_PUB_KEY
 
-    # Ввод данных аккаунта
-    echo -e "${YELLOW}Введите ваш Account ID:${NC}"
-    read IDENTIFIER
-    echo -e "${YELLOW}Установите ваш PIN:${NC}"
-    read PIN
+    # Запуск команды с параметрами, с указанием публичного ключа Solana
+    screen -S pipe2 -X stuff "./pop --ram 8 --max-disk 500 --cache-dir ~/pipe/download_cache --pubKey $SOLANA_PUB_KEY\n"
 
-    # Привязка аккаунта
-    ./multiple-cli bind --bandwidth-download 100 --identifier $IDENTIFIER --pin $PIN --storage 200 --bandwidth-upload 100
-
-    # Проверка статуса
-    cd ~/multipleforlinux && ./multiple-cli status
+    echo -e "${GREEN}Процесс установки и запуска завершён!${NC}"
+    echo -e "${GREEN}Для выхода из сессии screen нажмите 'Ctrl + A' затем 'D'.${NC}"
 }
 
 # Функция для проверки статуса ноды
 check_status() {
     echo -e "${BLUE}Проверка статуса ноды...${NC}"
-    cd ~/multipleforlinux && ./multiple-cli status
+    screen -S pipe2 -X stuff "ps aux | grep pop\n"
 }
 
 # Функция для удаления ноды
@@ -110,17 +108,15 @@ remove_node() {
     echo -e "${BLUE}Удаляем ноду...${NC}"
 
     # Остановка процесса
-    pkill -f multiple-node
+    pkill -f pop
 
     # Удаление файлов ноды
-    sudo rm -rf ~/multipleforlinux
+    sudo rm -rf ~/pipe
 
     echo -e "${GREEN}Нода успешно удалена!${NC}"
 }
 
-#!/bin/bash
-
-# Вывод меню действий
+# Основное меню
 CHOICE=$(whiptail --title "Меню действий" \
     --menu "Выберите действие:" 15 50 4 \
     "1" "Установка ноды" \
