@@ -11,12 +11,6 @@ if ! command -v whiptail &> /dev/null; then
     sudo apt update && sudo apt install -y whiptail
 fi
 
-# Проверка наличия expect
-if ! command -v expect &> /dev/null; then
-    echo "expect не найден. Устанавливаем..."
-    sudo apt update && sudo apt install -y expect
-fi
-
 # Определяем цвета для удобства
 YELLOW="\e[33m"
 CYAN="\e[36m"
@@ -83,15 +77,11 @@ install_node() {
     echo -e "${YELLOW}Введите ваш публичный адрес Solana:${NC}"
     read SOLANA_PUB_KEY
 
-    # Регистрация и автоматический ввод реферального кода через expect
-    echo -e "${YELLOW}Вводим реферальный код автоматически: 1111${NC}"
+    # Регистрация и ввод реферального кода
+    echo -e "${YELLOW}Введите реферальный код: 1111${NC}"
 
-    expect <<EOF
-    spawn ./pop --ram 8 --max-disk 500 --cache-dir ~/pipe/download_cache --pubKey $SOLANA_PUB_KEY
-    expect "Введите реферальный код:"
-    send "1111\r"
-    expect eof
-EOF
+    # Запуск команды с параметрами, с указанием публичного ключа Solana
+    screen -S pipe2 -X stuff "./pop --ram 8 --max-disk 500 --cache-dir ~/pipe/download_cache --pubKey $SOLANA_PUB_KEY\n"
 
     echo -e "${GREEN}Процесс установки и запуска завершён!${NC}"
     echo -e "${GREEN}Для выхода из сессии screen нажмите 'Ctrl + A' затем 'D'.${NC}"
