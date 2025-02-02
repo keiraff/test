@@ -91,31 +91,19 @@ install_node() {
 # Функция для проверки статуса ноды
 check_status() {
     echo -e "${BLUE}Проверка статуса ноды...${NC}"
+    
+    screen -x pipe2
 
-    # Проверка наличия активной сессии screen
-    if screen -list | grep -q "pipe2"; then
-        # Если сессия существует, выполняем команду
-        screen -S pipe2 -X stuff "./pop --status\n"
-    else
-        # Если сессия не существует, создаём её и выполняем команду
-        screen -S pipe2 -dm
-        screen -S pipe2 -X stuff "./pop --status\n"
-    fi
+    ./pop --status
 }
 
 # Функция для проверки поинтов ноды
 check_points() {
     echo -e "${BLUE}Проверка поинтов ноды...${NC}"
+    
+    screen -x pipe2
 
-    # Проверка наличия активной сессии screen
-    if screen -list | grep -q "pipe2"; then
-        # Если сессия существует, выполняем команду
-        screen -S pipe2 -X stuff "./pop --points-route\n"
-    else
-        # Если сессия не существует, создаём её и выполняем команду
-        screen -S pipe2 -dm
-        screen -S pipe2 -X stuff "./pop --points-route\n"
-    fi
+    ./pop --points-route
 }
 
 # Функция для удаления ноды
