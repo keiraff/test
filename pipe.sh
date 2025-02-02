@@ -83,11 +83,10 @@ install_node() {
 
     # Запуск команды с параметрами, с указанием публичного ключа Solana
     screen -S pipe2 -X stuff "./pop --ram 8 --max-disk 500 --cache-dir ~/pipe/download_cache --pubKey $SOLANA_PUB_KEY\n"
-
-    screen -S pipe2 -X stuff "\n"
+    sleep 3
+    screen -S pipe2 -X stuff "1111\n"
 
     echo -e "${GREEN}Процесс установки и запуска завершён!${NC}"
-    echo -e "${GREEN}Для выхода из сессии screen нажмите 'Ctrl + A' затем 'D'.${NC}"
 }
 
 # Функция для проверки статуса ноды
@@ -105,7 +104,7 @@ check_points() {
 
     cd pipe
     
-    ./pop --points-route
+    ./pop --points
     
     cd ..
 }
