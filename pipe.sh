@@ -11,6 +11,12 @@ if ! command -v whiptail &> /dev/null; then
     sudo apt update && sudo apt install -y whiptail
 fi
 
+# Проверка наличия expect
+if ! command -v expect &> /dev/null; then
+    echo "expect не найден. Устанавливаем..."
+    sudo apt update && sudo apt install -y expect
+fi
+
 # Определяем цвета для удобства
 YELLOW="\e[33m"
 CYAN="\e[36m"
@@ -53,10 +59,6 @@ animate_loading() {
     echo ""
 }
 
-# Вызов функции анимации
-animate_loading
-echo ""
-
 # Функция для установки ноды
 install_node() {
     echo -e "${BLUE}Начинаем установку ноды...${NC}"
@@ -81,36 +83,37 @@ install_node() {
     echo -e "${YELLOW}Введите ваш публичный адрес Solana:${NC}"
     read SOLANA_PUB_KEY
 
-    # Запуск команды с параметрами, с указанием публичного ключа Solana
-    screen -S pipe2 -X stuff "./pop --ram 8 --max-disk 500 --cache-dir ~/pipe/download_cache --pubKey $SOLANA_PUB_KEY\n"
+    # Регистрация и автоматический ввод реферального кода через expect
+    echo -e "${YELLOW}Вводим реферальный код автоматически: 1111${NC}"
+
+    expect <<EOF
+    spawn ./pop --ram 8 --max-disk 500 --cache-dir ~/pipe/download_cache --pubKey $SOLANA_PUB_KEY
+    expect "Введите реферальный код:"
+    send "1111\r"
+    expect eof
+EOF
 
     echo -e "${GREEN}Процесс установки и запуска завершён!${NC}"
     echo -e "${GREEN}Для выхода из сессии screen нажмите 'Ctrl + A' затем 'D'.${NC}"
 }
 
-# Функция для проверки статуса ноды
-check_status() {
-    echo -e "${BLUE}Проверка статуса ноды...${NC}"
-    
-    screen -x pipe2
-    
-    screen -S pipe2 -X stuff "./pop --status\n"
+# Функция для получения статуса ноды
+get_status() {
+    STATUS=$(screen -S pipe2 -X stuff "./pop --status\n")
+    echo "$STATUS"
 }
 
-# Функция для проверки поинтов ноды
-check_points() {
-    echo -e "${BLUE}Проверка поинтов ноды...${NC}"
-    
-    screen -x pipe2
-    
-    screen -S pipe2 -X stuff "./pop --points-route\n"
+# Функция для получения поинтов ноды
+get_points() {
+    POINTS=$(screen -S pipe2 -X stuff "./pop --points-route\n")
+    echo "$POINTS"
 }
 
 # Функция для удаления ноды
 remove_node() {
     echo -e "${BLUE}Удаляем ноду...${NC}"
 
-     pkill -f pop
+    pkill -f pop
 
     # Завершаем сеанс screen с именем 'pipe2' и удаляем его
     screen -S pipe2 -X quit
@@ -122,32 +125,39 @@ remove_node() {
 }
 
 # Основное меню
-CHOICE=$(whiptail --title "Меню действий" \
-    --menu "Выберите действие:" 15 50 6 \
-    "1" "Установка ноды" \
-    "2" "Проверка статуса ноды" \
-    "3" "Проверка поинтов ноды" \
-    "4" "Удаление ноды" \
-    "5" "Выход" \
-    3>&1 1>&2 2>&3)
+while true; do
+    STATUS=$(get_status)
+    POINTS=$(get_points)
 
-case $CHOICE in
-    1) 
-        install_node
-        ;;
-    2) 
-        check_status
-        ;;
-    3) 
-        check_points
-        ;;
-    4) 
-        remove_node
-        ;;
-    5)
-        echo -e "${CYAN}Выход из программы.${NC}"
-        ;;
-    *)
-        echo -e "${RED}Неверный выбор. Завершение программы.${NC}"
-        ;;
-esac
+    CHOICE=$(whiptail --title "Меню действий" \
+        --menu "Выберите действие:" 15 50 6 \
+        "1" "Установка ноды" \
+        "2" "Проверка статуса ноды: $STATUS" \
+        "3" "Проверка поинтов ноды: $POINTS" \
+        "4" "Удаление ноды" \
+        "5" "Выход" \
+        3>&1 1>&2 2>&3)
+
+    case $CHOICE in
+        1) 
+            install_node
+            ;;
+        2) 
+            echo -e "${BLUE}Статус ноды:${NC} $STATUS"
+            ;;
+        3) 
+            echo -e "${BLUE}Поинты ноды:${NC} $POINTS"
+            ;;
+        4) 
+            remove_node
+            ;;
+        5)
+            echo -e "${CYAN}Выход из программы.${NC}"
+            break
+            ;;
+        *)
+            echo -e "${RED}Неверный выбор. Завершение программы.${NC}"
+            break
+            ;;
+    esac
+done
