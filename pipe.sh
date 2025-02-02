@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Проверка наличия необходимых утилит, установка если отсутствует
+# Проверка наличия необходимых утилит, установка если отсутствуют
 if ! command -v figlet &> /dev/null; then
     echo "figlet не найден. Устанавливаем..."
     sudo apt update && sudo apt install -y figlet
@@ -24,15 +24,6 @@ install_dependencies() {
     echo -e "${GREEN}Устанавливаем необходимые пакеты...${NC}"
     sudo apt update && sudo apt install -y curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip screen
 }
-
-# Определяем цвета для удобства
-YELLOW="\e[33m"
-CYAN="\e[36m"
-BLUE="\e[34m"
-GREEN="\e[32m"
-RED="\e[31m"
-PINK="\e[35m"
-NC="\e[0m"
 
 # Вывод приветственного текста с помощью figlet
 echo -e "${PINK}$(figlet -w 150 -f standard "Softs by Gentleman")${NC}"
@@ -100,7 +91,31 @@ install_node() {
 # Функция для проверки статуса ноды
 check_status() {
     echo -e "${BLUE}Проверка статуса ноды...${NC}"
-    screen -S pipe2 -X stuff "ps aux | grep pop\n"
+
+    # Проверка наличия активной сессии screen
+    if screen -list | grep -q "pipe2"; then
+        # Если сессия существует, выполняем команду
+        screen -S pipe2 -X stuff "./pop --status\n"
+    else
+        # Если сессия не существует, создаём её и выполняем команду
+        screen -S pipe2 -dm
+        screen -S pipe2 -X stuff "./pop --status\n"
+    fi
+}
+
+# Функция для проверки поинтов ноды
+check_points() {
+    echo -e "${BLUE}Проверка поинтов ноды...${NC}"
+
+    # Проверка наличия активной сессии screen
+    if screen -list | grep -q "pipe2"; then
+        # Если сессия существует, выполняем команду
+        screen -S pipe2 -X stuff "./pop --points-route\n"
+    else
+        # Если сессия не существует, создаём её и выполняем команду
+        screen -S pipe2 -dm
+        screen -S pipe2 -X stuff "./pop --points-route\n"
+    fi
 }
 
 # Функция для удаления ноды
@@ -118,11 +133,12 @@ remove_node() {
 
 # Основное меню
 CHOICE=$(whiptail --title "Меню действий" \
-    --menu "Выберите действие:" 15 50 4 \
+    --menu "Выберите действие:" 15 50 6 \
     "1" "Установка ноды" \
     "2" "Проверка статуса ноды" \
-    "3" "Удаление ноды" \
-    "4" "Выход" \
+    "3" "Проверка поинтов ноды" \
+    "4" "Удаление ноды" \
+    "5" "Выход" \
     3>&1 1>&2 2>&3)
 
 case $CHOICE in
@@ -133,9 +149,12 @@ case $CHOICE in
         check_status
         ;;
     3) 
+        check_points
+        ;;
+    4) 
         remove_node
         ;;
-    4)
+    5)
         echo -e "${CYAN}Выход из программы.${NC}"
         ;;
     *)
