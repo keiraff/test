@@ -94,9 +94,9 @@ check_status() {
     
     screen -x pipe2
     
-    ./pop --status
+    screen -S pipe2 -X stuff "./pop --status\n"
 
-    echo -e "${GREEN}ДЛЯ ЗАПУСКА СКРИПТА НАЖМИТЕ CTRL + A+ D И ВВЕДИТЕ ./pipe.sh${NC}"
+    screen -S pipe2 -X stuff "echo -e \"\${GREEN}ДЛЯ ЗАПУСКА СКРИПТА НАЖМИТЕ CTRL + A+ D И ВВЕДИТЕ ./pipe.sh\${NC}\n"
 }
 
 # Функция для проверки поинтов ноды
@@ -106,8 +106,9 @@ check_points() {
     screen -x pipe2
     
     screen -S pipe2 -X stuff "./pop --points-route\n"
+    
+    screen -S pipe2 -X stuff "echo -e \"\${GREEN}ДЛЯ ЗАПУСКА СКРИПТА НАЖМИТЕ CTRL + A+ D И ВВЕДИТЕ ./pipe.sh\${NC}\n"
 
-    echo -e "${GREEN}ДЛЯ ЗАПУСКА СКРИПТА НАЖМИТЕ CTRL + A+ D И ВВЕДИТЕ ./pipe.sh${NC}"
 }
 
 # Функция для удаления ноды
