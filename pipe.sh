@@ -94,18 +94,20 @@ install_node() {
 check_status() {
     echo -e "${BLUE}Проверка статуса ноды...${NC}"
     
-    screen -x pipe2
-    
-    screen -S pipe2 -X stuff "./pop --status\n"
+    cd pipe
+    ./pop --status
+    cd ..
 }
 
 # Функция для проверки поинтов ноды
 check_points() {
     echo -e "${BLUE}Проверка поинтов ноды...${NC}"
+
+    cd pipe
     
-    screen -x pipe2
+    ./pop --points-route
     
-    screen -S pipe2 -X stuff "./pop --points-route\n"
+    cd ..
 }
 
 # Функция для удаления ноды
