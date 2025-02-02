@@ -110,8 +110,10 @@ check_points() {
 remove_node() {
     echo -e "${BLUE}Удаляем ноду...${NC}"
 
-    # Остановка процесса
-    pkill -f pop
+     pkill -f pop
+
+    # Завершаем сеанс screen с именем 'pipe2' и удаляем его
+    screen -S pipe2 -X quit
 
     # Удаление файлов ноды
     sudo rm -rf ~/pipe
