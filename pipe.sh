@@ -105,7 +105,7 @@ check_points() {
     
     screen -x pipe2
     
-    ./pop --points-route
+    screen -S pipe2 -X stuff "./pop --points-route\n"
 
     echo -e "${GREEN}ДЛЯ ЗАПУСКА СКРИПТА НАЖМИТЕ CTRL + A+ D И ВВЕДИТЕ ./pipe.sh${NC}"
 }
