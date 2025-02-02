@@ -1,4 +1,6 @@
 #!/bin/bash
+echo "Обновляем систему перед настройкой..."
+sudo apt update -y && sudo apt upgrade -y
 
 # Проверка наличия необходимых утилит, установка если отсутствуют
 if ! command -v figlet &> /dev/null; then
